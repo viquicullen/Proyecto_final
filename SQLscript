@@ -1,0 +1,99 @@
+create database Adidas_Entrega_Final;
+
+use Adidas_Entrega_Final;
+
+
+--eliminamos las columnas que no nos sirven y se importaron por eror
+alter table ventas drop column column11,Margen_operativo;
+
+
+--creación de PK
+
+alter table retailer Add CONSTRAINT PK_retailer primary key (ID_Retailer);
+alter table producto Add CONSTRAINT PK_producto primary key (ID_Producto);
+alter table metodo Add CONSTRAINT PK_metodo primary key (ID_metodo);
+alter table region Add CONSTRAINT PK_region primary key (ID_Region);
+
+--creación de FK
+alter table Ventas Add CONSTRAINT FK_ventas_retailer Foreign KEY (ID_Retailer) references Retailer (ID_retailer);
+alter table Ventas Add CONSTRAINT FK_ventas_producto Foreign KEY (ID_Producto) references Producto (ID_Producto);
+alter table Ventas Add CONSTRAINT FK_ventas_region Foreign KEY (ID_Region) references region (ID_Region);
+alter table Ventas Add CONSTRAINT FK_ventas_metodo Foreign KEY (ID_Metodo) references metodo (ID_Metodo);
+
+
+-- ejercicio 1 
+
+ select
+ R.retailer as Nombre_cliente,
+ v.fecha as Fecha_compra,
+ v.ventas_Totales as Total_venta
+ from ventas v
+ join retailer R on V.ID_Retailer = R.ID_Retailer
+ where v.fecha >= dateadd(day,-30,(select max (fecha) From ventas))
+ order by v.fecha DEsc;
+
+ select 
+ m.metodo_de_Venta as Metodo,
+ sum(v.ventas_totales) as Total_ventas
+ from ventas V
+ join metodo m on v.id_metodo = m.ID_Metodo
+ group by m.Metodo_de_Venta
+ order by Total_ventas desc;
+
+ select 
+avg(ventas_totales) as ticket_promedio
+from ventas;
+
+select 
+p.producto as Prodcuto,
+sum(v.ventas_totales) as Total_ventas,
+sum(v.unidades_vendidas) as unidades_vendidas
+from ventas V 
+join producto p on v.id_producto = p.ID_Producto
+group by p.producto 
+order by total_ventas desc;
+
+
+select 
+r.retailer as cliente,
+sum(v.ventas_totales) as Total_ventas
+from Ventas v
+join retailer R on v.id_retailer = R.id_retailer
+group by r.retailer
+order by total_ventas asc;
+
+
+
+select
+max(ventas_totales) - min(ventas_totales) as Rango
+from ventas;
+
+select
+min(ventas_totales),
+max(ventas_totales)
+from ventas;
+
+select * from ventas where ventas_totales = 0;
+
+select * from ventas
+order by ventas_totales asc;
+
+select 
+avg(ventas_totales) as ticket_promedio,
+max(ventas_totales) - min(ventas_totales) as rango,
+count(*) as Cantidad_vtas_Validas
+from ventas
+where Ventas_Totales > 0 ;
+
+select
+percentile_cont(0.5) within group (order by ventas_totales) over () as mediana
+from ventas
+where Ventas_Totales > 0 ;
+
+select top 1
+ventas_totales as moda,
+count(*) as repetidos
+from ventas
+where ventas_totales >0
+group by Ventas_Totales
+order by count(*) desc;
